@@ -112,8 +112,9 @@ export const MENU_GROUPS: MenuGroup[] = [
   },
   {
     id: "settings",
-    title: "Settings",
+    title: "Settings & Administration",
     items: [
+      { id: "users", label: "Staff & Roles", href: "/users", icon: Users, screenNumber: 46 },
       { id: "reports", label: "Reports", href: "/reports", icon: BarChart2, screenNumber: 37 },
       { id: "audit-logs", label: "Activity Logs", href: "/audit-logs", icon: ScrollText, screenNumber: 44 },
       { id: "store-settings", label: "Store Settings", href: "/store-settings", icon: Settings, screenNumber: 45 },
@@ -204,7 +205,12 @@ export default function Sidebar({
 
       {/* Navigation Groups List */}
       <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-3 custom-sidebar-scroll">
-        {MENU_GROUPS.map((group, groupIdx) => {
+        {MENU_GROUPS.filter((group) => {
+          if (currentUser?.role === "DOCTOR") {
+            return group.id === "main" || group.id === "patients";
+          }
+          return true;
+        }).map((group, groupIdx) => {
           // Check if any item in this group is currently active
           const hasActiveChild = group.items.some((it) => it.id === currentScreen);
           // If group has active child, force it to be expanded
