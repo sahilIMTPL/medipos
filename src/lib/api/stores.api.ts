@@ -40,22 +40,34 @@ export interface CurrentStoreResponse {
 
 export const storesApi = {
   async getStores() {
-    const res = await fetch(`${API_BASE_URL}/stores`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-      cache: "no-store",
-    });
-    return res.json();
+    try {
+      const res = await fetch(`${API_BASE_URL}/stores`, {
+        method: "GET",
+        headers: getAuthHeaders(),
+        cache: "no-store",
+      });
+      if (!res.ok) return { success: false, stores: [] };
+      return await res.json();
+    } catch (err) {
+      console.warn("Could not connect to backend /stores API. Server might be starting up:", err);
+      return { success: false, stores: [] };
+    }
   },
 
   async getCurrentStore(storeId?: string): Promise<CurrentStoreResponse> {
-    const url = storeId ? `${API_BASE_URL}/stores/current?storeId=${storeId}` : `${API_BASE_URL}/stores/current`;
-    const res = await fetch(url, {
-      method: "GET",
-      headers: getAuthHeaders(),
-      cache: "no-store",
-    });
-    return res.json();
+    try {
+      const url = storeId ? `${API_BASE_URL}/stores/current?storeId=${storeId}` : `${API_BASE_URL}/stores/current`;
+      const res = await fetch(url, {
+        method: "GET",
+        headers: getAuthHeaders(),
+        cache: "no-store",
+      });
+      if (!res.ok) return { success: false, store: null as any };
+      return await res.json();
+    } catch (err) {
+      console.warn("Could not connect to backend /stores/current API:", err);
+      return { success: false, store: null as any };
+    }
   },
 
   async updateCurrentStore(data: {

@@ -1,5 +1,23 @@
 // MediPOS API Data Models and Type Definitions
 
+export interface StoreInfo {
+  id: string;
+  name: string;
+  code: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  phone?: string;
+  email?: string;
+  gstin?: string;
+  drugLicenseNo?: string;
+  productCount?: number;
+  batchCount?: number;
+  salesCount?: number;
+  settings?: any;
+}
+
 export interface LoginResponse {
   success: boolean;
   message?: string;

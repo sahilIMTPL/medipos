@@ -24,10 +24,12 @@ import { gstApi } from "./gst.api";
 import { digilockerApi } from "./digilocker.api";
 import { accountingApi } from "./accounting.api";
 import { drugcentralApi } from "./drugcentral.api";
+import { usersApi } from "./users.api";
 
 // Re-export all domain API modules
 export * from "./client";
 export * from "./types";
+export * from "./users.api";
 export * from "./super-admin.api";
 export * from "./auth.api";
 export * from "./dashboard.api";
@@ -79,6 +81,7 @@ export const api = {
   ...digilockerApi,
   ...accountingApi,
   ...drugcentralApi,
+  ...usersApi,
 };
 
 export default api;

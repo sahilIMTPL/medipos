@@ -89,13 +89,17 @@ export const RegisterPaymentModal: React.FC<RegisterPaymentModalProps> = ({
           idempotencyKeyRef.current
         );
       } else {
-        if (!partnerId && !invoiceId) {
-          throw new Error("Vendor identifier is missing.");
+        const effectivePartnerId = partnerId?.trim() || "";
+        const effectiveInvoiceId = invoiceId?.trim() || "";
+
+        if (!effectivePartnerId && !effectiveInvoiceId) {
+          throw new Error("Vendor or Bill identifier is missing. Please select a valid vendor bill to record payment.");
         }
+
         await api.registerVendorPayment(
           {
-            supplierId: partnerId || "",
-            purchaseInvoiceId: invoiceId,
+            supplierId: effectivePartnerId,
+            purchaseInvoiceId: effectiveInvoiceId || undefined,
             amount,
             paymentMethod,
             paymentDate,
