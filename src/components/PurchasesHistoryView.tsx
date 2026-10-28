@@ -397,7 +397,7 @@ export default function PurchasesHistoryView({
           invoiceId={paymentModalState.purchase.id}
           invoiceNumber={paymentModalState.purchase.supplierInvoiceNumber || paymentModalState.purchase.invoiceNumber}
           partnerName={paymentModalState.purchase.supplierName || (paymentModalState.purchase as any).supplier?.businessName || "Vendor"}
-          partnerId={paymentModalState.purchase.supplierId || (paymentModalState.purchase as any).supplier?.id}
+          partnerId={paymentModalState.purchase.supplierId || (paymentModalState.purchase as any).supplier_id || (paymentModalState.purchase as any).supplier?.id}
           grandTotal={paymentModalState.purchase.totalAmount}
           paidAmount={paymentModalState.purchase.paidAmount}
           remainingDue={paymentModalState.purchase.balanceDue}

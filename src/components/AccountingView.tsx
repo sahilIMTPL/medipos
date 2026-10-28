@@ -798,7 +798,7 @@ export const AccountingView: React.FC = () => {
                                   invoiceId: b.id,
                                   invoiceNumber: b.supplierInvoiceNumber || b.invoiceNumber,
                                   partnerName: b.supplierName || (b as any).supplier?.businessName || "Vendor",
-                                  partnerId: b.supplierId || (b as any).supplier?.id,
+                                  partnerId: b.supplierId || (b as any).supplier_id || (b as any).supplier?.id,
                                   grandTotal: b.totalAmount,
                                   paidAmount: b.paidAmount,
                                   remainingDue: b.remainingDue,
