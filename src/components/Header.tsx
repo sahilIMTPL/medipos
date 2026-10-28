@@ -16,6 +16,8 @@ import {
   KeyRound,
   Check,
   CheckCheck,
+  Users,
+  Lock,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
@@ -310,58 +312,74 @@ export default function Header({
           )}
         </div>
 
-        {/* Store Selector Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setIsStoreMenuOpen(!isStoreMenuOpen)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 hover:border-slate-300 bg-white text-xs text-slate-700 font-medium transition shadow-2xs"
-            title={currentStore?.code ? `Store Code: ${currentStore.code}` : undefined}
+        {/* Store Selector Dropdown or Fixed Single Store Badge for Store Admin */}
+        {isMounted && currentUser?.role === "STORE_ADMIN" ? (
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-700 font-medium shadow-2xs"
+            title={`Assigned Branch: ${currentStore?.name || "Store"}`}
           >
-            <Store className="h-4 w-4 text-indigo-600" />
+            <Store className="h-4 w-4 text-emerald-600" />
             <span className="hidden sm:inline font-semibold">
               {currentStore?.name || selectedStore || "City Medical Store"}
             </span>
-            <ChevronDown className="h-4 w-4 text-slate-400" />
-          </button>
+            <span className="hidden lg:flex items-center gap-1 text-[10px] bg-slate-200/80 text-slate-600 font-bold px-2 py-1 rounded">
+              <Lock className="h-3 w-3" />
+              <span>Assigned Branch</span>
+            </span>
+          </div>
+        ) : (
+          <div className="relative">
+            <button
+              onClick={() => setIsStoreMenuOpen(!isStoreMenuOpen)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 hover:border-slate-300 bg-white text-xs text-slate-700 font-medium transition shadow-2xs"
+              title={currentStore?.code ? `Store Code: ${currentStore.code}` : undefined}
+            >
+              <Store className="h-4 w-4 text-indigo-600" />
+              <span className="hidden sm:inline font-semibold">
+                {currentStore?.name || selectedStore || "City Medical Store"}
+              </span>
+              <ChevronDown className="h-4 w-4 text-slate-400" />
+            </button>
 
-          {isStoreMenuOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex justify-between items-center">
-                <span>Stores</span>
-                <span className="text-[10px] text-indigo-600 font-bold">{stores.length} Active</span>
+            {isStoreMenuOpen && (
+              <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex justify-between items-center">
+                  <span>Stores</span>
+                  <span className="text-[10px] text-indigo-600 font-bold">{stores.length} Active</span>
+                </div>
+                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                  {stores.map((s) => {
+                    const isCurrent = currentStore?.id === s.id || s.name === selectedStore;
+                    const locationDisplay = s.city ? `${s.city}, ${s.state || "India"}` : (s.code || "Branch");
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          setCurrentStore(s);
+                          onSelectStore && onSelectStore(s.name);
+                          setIsStoreMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between transition ${
+                          isCurrent ? "bg-indigo-50/40" : ""
+                        }`}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className={`font-semibold truncate ${isCurrent ? "text-indigo-900" : "text-slate-800"}`}>
+                            {s.name}
+                          </p>
+                          <p className="text-[10px] text-slate-400 truncate">{locationDisplay}</p>
+                        </div>
+                        {isCurrent && (
+                          <Check className="h-4 w-4 text-indigo-600 flex-shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-                {stores.map((s) => {
-                  const isCurrent = currentStore?.id === s.id || s.name === selectedStore;
-                  const locationDisplay = s.city ? `${s.city}, ${s.state || "India"}` : (s.code || "Branch");
-                  return (
-                    <button
-                      key={s.id}
-                      onClick={() => {
-                        setCurrentStore(s);
-                        onSelectStore && onSelectStore(s.name);
-                        setIsStoreMenuOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between transition ${
-                        isCurrent ? "bg-indigo-50/40" : ""
-                      }`}
-                    >
-                      <div className="min-w-0 pr-2">
-                        <p className={`font-semibold truncate ${isCurrent ? "text-indigo-900" : "text-slate-800"}`}>
-                          {s.name}
-                        </p>
-                        <p className="text-[10px] text-slate-400 truncate">{locationDisplay}</p>
-                      </div>
-                      {isCurrent && (
-                        <Check className="h-4 w-4 text-indigo-600 flex-shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Quick Launch Super Admin Portal for Super Admin */}
         {isSuperAdmin && (
@@ -426,6 +444,15 @@ export default function Header({
                   <ArrowRight className="h-3 w-3 text-indigo-600" />
                 </Link>
               )}
+
+              <Link
+                href="/users"
+                onClick={() => setIsUserMenuOpen(false)}
+                className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
+              >
+                <Users className="h-4 w-4 text-slate-400" />
+                <span>Manage Store Staff</span>
+              </Link>
 
               <button
                 type="button"
