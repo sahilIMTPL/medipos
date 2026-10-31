@@ -43,6 +43,7 @@ import SalesInvoiceModal from "./SalesInvoiceModal";
 import CameraBarcodeScannerModal from "./CameraBarcodeScannerModal";
 import GenericSubstituteModal from "./GenericSubstituteModal";
 import { useStore } from "@/context/StoreContext";
+import { useShift } from "@/context/ShiftContext";
 import { doctorApi, PendingQueueRxItem } from "@/lib/api/doctor.api";
 
 export interface CartItem {
@@ -167,8 +168,9 @@ export default function PosBillingView() {
   const [processingSale, setProcessingSale] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
 
-  // Store context
+  // Store & Shift context
   const { currentStore } = useStore();
+  const { isShiftOpen, setIsOpenShiftModalOpen } = useShift();
 
   // Generic Salt Substitute Finder Modal
   const [selectedProductForSubstitutes, setSelectedProductForSubstitutes] = useState<ProductItem | null>(null);
@@ -944,6 +946,10 @@ export default function PosBillingView() {
       setActivePrescriptionId(null);
       setIsPaymentOpen(false);
       setCompletedInvoiceId(result.invoiceId);
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("medipos_shift_updated"));
+      }
 
       loadData();
       fetchDoctorRxQueue();
@@ -1724,11 +1730,28 @@ export default function PosBillingView() {
               </div>
             </div>
 
+            {!isShiftOpen && (
+              <div
+                onClick={() => setIsOpenShiftModalOpen(true)}
+                className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-xs flex items-center justify-between cursor-pointer hover:bg-amber-100 transition"
+              >
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <span className="font-semibold">Shift closed: Enter opening float</span>
+                </div>
+                <span className="font-bold underline text-amber-700 text-[11px]">Open</span>
+              </div>
+            )}
+
             {/* Main Checkout Button */}
             <button
               type="button"
               disabled={cart.length === 0}
               onClick={() => {
+                if (!isShiftOpen) {
+                  setIsOpenShiftModalOpen(true);
+                  return;
+                }
                 setTenderedAmount(totals.grandTotal);
                 setIsPaymentOpen(true);
               }}

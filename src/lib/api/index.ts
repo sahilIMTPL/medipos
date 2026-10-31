@@ -25,6 +25,7 @@ import { digilockerApi } from "./digilocker.api";
 import { accountingApi } from "./accounting.api";
 import { drugcentralApi } from "./drugcentral.api";
 import { usersApi } from "./users.api";
+import { shiftsApi } from "./shifts.api";
 
 // Re-export all domain API modules
 export * from "./client";
@@ -54,6 +55,7 @@ export * from "./gst.api";
 export * from "./digilocker.api";
 export * from "./accounting.api";
 export * from "./drugcentral.api";
+export * from "./shifts.api";
 
 // Consolidated `api` singleton preserving full backward-compatibility
 export const api = {
@@ -82,6 +84,8 @@ export const api = {
   ...accountingApi,
   ...drugcentralApi,
   ...usersApi,
+  ...shiftsApi,
+  shifts: shiftsApi,
 };
 
 export default api;

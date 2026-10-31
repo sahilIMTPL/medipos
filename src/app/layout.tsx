@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 import { StoreProvider } from "@/context/StoreContext";
+import { ShiftProvider } from "@/context/ShiftContext";
 
 export default function RootLayout({
   children,
@@ -24,7 +25,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${inter.variable} h-full antialiased font-sans`}>
       <body suppressHydrationWarning className={`${inter.className} min-h-full flex flex-col bg-slate-50 text-slate-900 font-sans`}>
         <StoreProvider>
-          {children}
+          <ShiftProvider>
+            {children}
+          </ShiftProvider>
         </StoreProvider>
       </body>
     </html>

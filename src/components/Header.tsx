@@ -18,10 +18,19 @@ import {
   CheckCheck,
   Users,
   Lock,
+  Banknote,
+  Coins,
+  FileSpreadsheet,
+  History,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { useStore } from "@/context/StoreContext";
+import { useShift } from "@/context/ShiftContext";
+import OpenShiftModal from "@/components/shifts/OpenShiftModal";
+import CloseShiftModal from "@/components/shifts/CloseShiftModal";
+import CashMovementModal from "@/components/shifts/CashMovementModal";
+import ZReportModal from "@/components/shifts/ZReportModal";
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -45,6 +54,16 @@ export default function Header({
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [notifFilter, setNotifFilter] = useState<"ALL" | "UNREAD">("ALL");
+
+  const {
+    currentShift,
+    isShiftOpen,
+    setIsOpenShiftModalOpen,
+    setIsCloseShiftModalOpen,
+    setIsCashMovementModalOpen,
+    setZReportModalShiftId,
+  } = useShift();
+  const [isShiftMenuOpen, setIsShiftMenuOpen] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -381,6 +400,122 @@ export default function Header({
           </div>
         )}
 
+        {/* Cash Register / Daily Shift Status */}
+        <div className="relative">
+          {isShiftOpen && currentShift ? (
+            <div>
+              <button
+                type="button"
+                onClick={() => setIsShiftMenuOpen(!isShiftMenuOpen)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-xs font-semibold text-emerald-900 transition shadow-2xs cursor-pointer"
+                title="Active Cash Register Shift"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <Banknote className="h-4 w-4 text-emerald-700" />
+                <span className="hidden sm:inline font-bold">Shift #{currentShift.shiftNumber}</span>
+                <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-1 rounded-md shadow-2xs">
+                  ₹{Math.round(currentShift.expectedCash).toLocaleString("en-IN")}
+                </span>
+                <ChevronDown className="h-3 w-3 text-emerald-600" />
+              </button>
+
+              {isShiftMenuOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
+                  <div className="px-3 py-2 border-b border-slate-100">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-slate-800">Register Shift #{currentShift.shiftNumber}</span>
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded-full uppercase">
+                        Active
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Opened at {new Date(currentShift.openedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+
+                  <div className="px-3 py-2 bg-slate-50 border-b border-slate-100 space-y-1 text-[11px]">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Opening Float:</span>
+                      <span className="font-semibold text-slate-800">₹{currentShift.openingCashFloat.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Cash Sales:</span>
+                      <span className="font-semibold text-emerald-700">+₹{currentShift.totalCashSales.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Digital / UPI Sales:</span>
+                      <span className="font-semibold text-indigo-700">₹{(currentShift.totalUpiSales + currentShift.totalCardSales).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between pt-1 border-t border-slate-200 font-bold">
+                      <span className="text-slate-900">Expected in Drawer:</span>
+                      <span className="text-emerald-700">₹{currentShift.expectedCash.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="py-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsShiftMenuOpen(false);
+                        setIsCashMovementModalOpen(true);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-semibold cursor-pointer"
+                    >
+                      <Coins className="h-4 w-4 text-indigo-600" />
+                      <span>Cash In / Out / Bank Drop</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsShiftMenuOpen(false);
+                        setZReportModalShiftId(currentShift.shiftId);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-semibold cursor-pointer"
+                    >
+                      <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                      <span>Interim Shift Z-Report</span>
+                    </button>
+                    <Link
+                      href="/shifts"
+                      onClick={() => setIsShiftMenuOpen(false)}
+                      className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-semibold cursor-pointer"
+                    >
+                      <History className="h-4 w-4 text-slate-500" />
+                      <span>Shift History & Reports</span>
+                    </Link>
+                    <div className="border-t border-slate-100 my-1"></div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsShiftMenuOpen(false);
+                        setIsCloseShiftModalOpen(true);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-rose-50 flex items-center gap-2 text-rose-700 font-bold cursor-pointer"
+                    >
+                      <Lock className="h-4 w-4 text-rose-600" />
+                      <span>Reconcile & Close Shift</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsOpenShiftModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-xs font-bold text-amber-900 transition shadow-2xs cursor-pointer"
+              title="No shift open. Click to enter opening cash float."
+            >
+              <Lock className="h-4 w-4 text-amber-700" />
+              <span className="hidden sm:inline">Register Closed • Open Shift</span>
+              <span className="sm:hidden">Open Shift</span>
+            </button>
+          )}
+        </div>
+
         {/* Quick Launch Super Admin Portal for Super Admin */}
         {isSuperAdmin && (
           <Link
@@ -486,6 +621,12 @@ export default function Header({
           )}
         </div>
       </div>
+
+      {/* Cash Register Daily Shift Modals */}
+      <OpenShiftModal />
+      <CloseShiftModal />
+      <CashMovementModal />
+      <ZReportModal />
     </header>
   );
 }
