@@ -29,6 +29,7 @@ import {
   Landmark,
   Receipt,
   CreditCard,
+  Banknote,
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
@@ -69,6 +70,7 @@ export const MENU_GROUPS: MenuGroup[] = [
       { id: "pos", label: "New Sale (POS)", href: "/pos", icon: ShoppingCart, screenNumber: 5 },
       { id: "sales-history", label: "Sales History", href: "/sales-history", icon: FileText, screenNumber: 7 },
       { id: "sales-returns", label: "Sales Returns", href: "/sales-returns", icon: RotateCcw, screenNumber: 9 },
+      { id: "shifts", label: "Cash Register Shifts", href: "/shifts", icon: Banknote, screenNumber: 8 },
     ],
   },
   {
