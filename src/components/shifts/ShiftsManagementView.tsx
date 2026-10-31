@@ -32,6 +32,7 @@ export default function ShiftsManagementView() {
   const {
     currentShift,
     isShiftOpen,
+    isRealtimeConnected,
     isLoading: isShiftLoading,
     refreshShift,
     setIsOpenShiftModalOpen,
@@ -155,8 +156,9 @@ export default function ShiftsManagementView() {
                   <h2 className="text-base font-black tracking-tight text-white">
                     Shift #{currentShift.shiftNumber} is In Progress
                   </h2>
-                  <span className="px-2 py-1 bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-black rounded-full uppercase tracking-wider">
-                    Live Active
+                  <span className="px-2 py-1 bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Live Active {isRealtimeConnected ? "(WebSocket)" : ""}</span>
                   </span>
                 </div>
                 <p className="text-xs text-emerald-200/80 mt-1 flex items-center gap-2">
