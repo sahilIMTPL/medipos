@@ -58,6 +58,7 @@ export default function Header({
   const {
     currentShift,
     isShiftOpen,
+    isRealtimeConnected,
     setIsOpenShiftModalOpen,
     setIsCloseShiftModalOpen,
     setIsCashMovementModalOpen,
@@ -434,6 +435,10 @@ export default function Header({
                     <p className="text-[11px] text-slate-500 mt-1">
                       Opened at {new Date(currentShift.openedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
+                    <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-600 font-semibold">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>Real-time WebSocket Sync Active</span>
+                    </div>
                   </div>
 
                   <div className="px-3 py-2 bg-slate-50 border-b border-slate-100 space-y-1 text-[11px]">

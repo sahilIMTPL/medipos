@@ -3,10 +3,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { api, ShiftSummary } from "@/lib/api";
 import { useStore } from "./StoreContext";
+import { realtimeClient, RealtimeEventPayload } from "@/lib/realtime";
 
 interface ShiftContextType {
   currentShift: ShiftSummary | null;
   isLoading: boolean;
+  isRealtimeConnected: boolean;
   refreshShift: () => Promise<void>;
   isShiftOpen: boolean;
   isOpenShiftModalOpen: boolean;
@@ -22,6 +24,7 @@ interface ShiftContextType {
 const ShiftContext = createContext<ShiftContextType>({
   currentShift: null,
   isLoading: true,
+  isRealtimeConnected: false,
   refreshShift: async () => {},
   isShiftOpen: false,
   isOpenShiftModalOpen: false,
@@ -38,6 +41,7 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const { currentStore } = useStore();
   const [currentShift, setCurrentShift] = useState<ShiftSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
 
   // Modal control states
   const [isOpenShiftModalOpen, setIsOpenShiftModalOpen] = useState(false);
@@ -67,6 +71,50 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     refreshShift();
   }, [refreshShift]);
 
+  // Synchronize active store context with WebSocket client
+  useEffect(() => {
+    if (currentStore?.id) {
+      realtimeClient.setStoreId(currentStore.id);
+    }
+  }, [currentStore?.id]);
+
+  // Subscribe to Instant WebSocket & Inter-Tab BroadcastChannel events
+  useEffect(() => {
+    const unsubscribe = realtimeClient.subscribe((event: RealtimeEventPayload) => {
+      // Instant in-memory state transition (<10ms)
+      if (event.type === "SHIFT_OPENED") {
+        if (event.data?.shiftSummary || event.data?.shift) {
+          setCurrentShift(event.data.shiftSummary || event.data.shift);
+        }
+      } else if (event.type === "SHIFT_CLOSED") {
+        setCurrentShift(null);
+      } else if (
+        event.type === "SHIFT_UPDATED" ||
+        event.type === "SALE_COMPLETED" ||
+        event.type === "CASH_MOVEMENT" ||
+        event.type === "SALE_RETURNED"
+      ) {
+        if (event.data?.shiftSummary) {
+          setCurrentShift(event.data.shiftSummary);
+        }
+      }
+
+      // Non-blocking background sync
+      refreshShift();
+    });
+
+    const handleStatus = (e: any) => {
+      setIsRealtimeConnected(Boolean(e.detail?.connected));
+    };
+    window.addEventListener("medipos_socket_status", handleStatus);
+    setIsRealtimeConnected(realtimeClient.getIsConnected());
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener("medipos_socket_status", handleStatus);
+    };
+  }, [refreshShift]);
+
   // Listen to custom store changed events
   useEffect(() => {
     const handleStoreChange = () => {
@@ -83,6 +131,7 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       value={{
         currentShift,
         isLoading,
+        isRealtimeConnected,
         refreshShift,
         isShiftOpen: Boolean(currentShift && currentShift.status === "OPEN"),
         isOpenShiftModalOpen,
